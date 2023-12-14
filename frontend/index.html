@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abdou docker</title>
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+</head>
+<style>
+    body {
+    background-color: bisque;
+    font-family: Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+}
+
+form {
+    text-align: center;
+}
+
+.drop-zone {
+    border: 2px inset #0059ff;
+    border-radius: 8px;
+    padding: 20px;
+    cursor: pointer;
+}
+
+select {
+    margin-top: 10px;
+}
+
+#result {
+    margin-top: 20px;
+    font-weight: bold;
+}
+</style>
+<body>
+    <form action="/predict" onsubmit="submitForm(event)" method="POST" enctype="multipart/form-data">
+        <div class="drop-zone" id="drop-zone">
+            <p>Mettez votre fichier a predire Ici</p>
+            <input type="file" name="file" id="file-input" accept=".wav">
+        </div>
+        <select name="model">
+            <option value="svm">SVM</option>
+            <option value="vgg16">VGG16</option>
+        </select>
+        <button type="submit">prédire</button>
+        <div id="resultDiv"></div>
+    </form>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <script >
+
+      const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+const resultDiv = document.getElementById('result');
+
+dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.style.border = '2px dashed #4CAF50';
+});
+
+dropZone.addEventListener('dragleave', () => {
+    dropZone.style.border = '2px dashed #ccc';
+});
+
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.style.border = '2px dashed #ccc';
+    const file = e.dataTransfer.files[0];
+    fileInput.files = e.dataTransfer.files;
+    resultDiv.innerHTML = `File selected: ${file.name}`;
+});
+
+fileInput.addEventListener('change', () => {
+    resultDiv.innerHTML = `File selected: ${fileInput.files[0].name}`;
+});
+
+function submitForm(e) {
+    var form = document.querySelector('form');
+    var resultDiv = document.getElementById('resultDiv');
+    e.preventDefault();
+    var formData = new FormData(form);
+    var selectedModel = document.querySelector('select[name="model"]').value;
+
+    var url = "/predict";
+    if (selectedModel === "vgg16") {
+        url = "/predict";
+    }
+
+    $.ajax({
+        type: "POST",
+        url: url,
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function(response) {
+            resultDiv.innerHTML = 'Prediction Result: ' + response.prediction;
+        },
+        error: function(error) {
+            console.log('Error Predicting: ' + error);
+            resultDiv.innerHTML = "Error predicting. Try again.";
+        }
+    });
+}
+    </script>
+</body>
+</html>
